@@ -71,54 +71,8 @@ public class SetmealController {
     public Result add(@RequestBody Setmeal setmeal, Integer[] checkgroupIds){
         //调用服务进行添加套餐
         setmealService.add(setmeal, checkgroupIds);
-        updateRedis();
+
         return new Result(true, MessageConstant.ADD_SETMEAL_SUCCESS);
-    }
-    public void updateRedis(){
-        //创建jedis对象
-        Jedis jedis = jedisPool.getResource();
-        String key = "health_setmealListInRedis";
-        Setmeal setmeal = null;
-        //调用服务查询所有套餐列表
-        List<Setmeal> setmealList = setmealService.findAll();
-        //拼接图片路径
-        setmealList.forEach(s -> {
-            s.setImg(QiNiuUtils.DOMAIN + s.getImg());
-        });
-        //查询数据库中是否有值
-        String health_setmealListInRedis = jedis.get(key);
-        if (StringUtils.isEmpty(health_setmealListInRedis)){
-            //没有值,存入
-            jedis.set(key, JSON.toJSONString(setmealList));
-        }else {
-            //有值,更新
-           jedis.del(key);
-           jedis.set(key,JSON.toJSONString(setmealList));
-        }
-        for (Setmeal s : setmealList) {
-            Integer id = s.getId();
-            //调用服务查询套餐详情
-            setmeal =setmealService.findDetailById(id);
-            //拼接图片路径
-            setmeal.setImg(QiNiuUtils.DOMAIN + setmeal.getImg());
-            String Detailkey = "health_setmealDetailListInRedis"+id;
-            //查询数据库中是否有值
-            String health_setmealDetailListInRedis = jedis.get(Detailkey);
-            if (StringUtils.isEmpty(health_setmealDetailListInRedis)){
-                //没有值,存入
-                jedis.set(Detailkey,JSON.toJSONString(setmeal));
-            }else {
-                //有值,更新
-                jedis.del(Detailkey);
-                jedis.set(Detailkey,JSON.toJSONString(setmeal));
-            }
-
-
-        }
-
-
-
-
     }
     /**
      * 分页查询套餐数据
@@ -180,7 +134,7 @@ public class SetmealController {
     public Result update(@RequestBody Setmeal setmeal, Integer[] checkgroupIds){
         //调用服务修改套餐
         setmealService.update(setmeal, checkgroupIds);
-        updateRedis();
+
         return new Result(true, "修改套餐成功");
     }
 
@@ -193,7 +147,7 @@ public class SetmealController {
     public Result deleteById(int id){
         //调用服务删除套餐
         setmealService.deleteById(id);
-        updateRedis();
+
         //返回响应
         return new Result(true, "删除套餐成功");
     }

@@ -36,26 +36,7 @@ public class SetmealMobileController {
      */
     @RequestMapping("/getSetmeal")
     public Result getSetmeal() {
-        //创建jedis对象
-        Jedis jedis = jedisPool.getResource();
-        //如果jedis中查询到的是空值,说明里面没有存
-        String key = "health_setmealListInRedis";
-        String health_setmealListInRedis = jedis.get(key);
-        List<Setmeal> setmealList = null;
-        if (StringUtils.isEmpty(health_setmealListInRedis)) {
-            //调用服务查询所有套餐信息
-            setmealList = setmealService.findAll();
-            // 拼接图片全路径
-            setmealList.forEach(s -> {
-                s.setImg(QiNiuUtils.DOMAIN + s.getImg());
-            });
-            //转成json字符串,存入Redis中
-            jedis.set(key, JSON.toJSONString(setmealList));
-        } else {
-            //不为空,将json字符串转换为对象
-             setmealList =  JSON.parseObject(health_setmealListInRedis, List.class);
-        }
-        jedis.close();
+        List<Setmeal> setmealList =  setmealService.findAll();
         //返回响应
         return new Result(true, MessageConstant.QUERY_SETMEAL_SUCCESS, setmealList);
     }
@@ -66,23 +47,7 @@ public class SetmealMobileController {
      */
     @GetMapping("/findDetailById")
     public Result findDetailById(int id){
-        //创建jedis对象
-        Jedis jedis = jedisPool.getResource();
-        //如果jedis中查询到的是空值,说明里面没有存
-        String Detailkey = "health_setmealDetailListInRedis"+id;
-        String health_setmealDetailListInRedis = jedis.get(Detailkey);
-        Setmeal setmeal =null;
-        if (StringUtils.isEmpty(health_setmealDetailListInRedis)){
-            //调用服务查询套餐详情
-            setmeal = setmealService.findDetailById(id);
-            // 设置图片的完整路径
-            setmeal.setImg(QiNiuUtils.DOMAIN + setmeal.getImg());
-            //转换成json字符串,存入redis中
-            jedis.set(Detailkey,JSON.toJSONString(setmeal));
-        }else {
-            //如果不为空,则转换为pojo对象
-             setmeal = JSON.parseObject(health_setmealDetailListInRedis, Setmeal.class);
-        }
+        Setmeal setmeal =setmealService.findDetailById(id);
         //返回响应
         return new Result(true, MessageConstant.QUERY_SETMEAL_SUCCESS,setmeal);
     }
