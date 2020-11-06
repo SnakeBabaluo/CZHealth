@@ -46,20 +46,4 @@ public interface OrderSettingDao {
      * @return
      */
     Map<String, Object> findById4Detail(int id);
-
-    /**
-     *  根据当前系统时间去查绚历史预约数据
-     * @Param
-     * @return java.util.List<java.lang.Integer>
-    **/
-    List<Integer> findByToday(Date date);
-
-    /**
-     *  删除历史预约数据
-     * @Param [count]
-     * @return void
-    **/
-    void delete(Integer count);
-
-
 }

@@ -142,26 +142,4 @@ public class OrderServiceImpl implements OrderService {
     public Map<String, Object> findById4Detail(int id) {
         return orderSettingDao.findById4Detail(id);
     }
-
-
-    /**
-     *  根据当前系统时间去查绚历史预约数据
-     * @Param [today]
-     * @return java.util.List<java.lang.Integer>
-    **/
-    @Override
-    public List<Integer> findByToday(Date date) {
-        return orderSettingDao.findByToday(date);
-    }
-
-
-    /**
-     *  删除历史预约数据
-     * @Param [count]
-     * @return void
-    **/
-    @Override
-    public void delete(Integer count) {
-        orderSettingDao.delete(count);
-    }
 }
