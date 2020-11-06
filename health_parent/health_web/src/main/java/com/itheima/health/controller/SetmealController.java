@@ -81,6 +81,10 @@ public class SetmealController {
         Setmeal setmeal = null;
         //调用服务查询所有套餐列表
         List<Setmeal> setmealList = setmealService.findAll();
+        //拼接图片路径
+        setmealList.forEach(s -> {
+            s.setImg(QiNiuUtils.DOMAIN + s.getImg());
+        });
         //查询数据库中是否有值
         String health_setmealListInRedis = jedis.get(key);
         if (StringUtils.isEmpty(health_setmealListInRedis)){
@@ -95,6 +99,8 @@ public class SetmealController {
             Integer id = s.getId();
             //调用服务查询套餐详情
             setmeal =setmealService.findDetailById(id);
+            //拼接图片路径
+            setmeal.setImg(QiNiuUtils.DOMAIN + setmeal.getImg());
             String Detailkey = "health_setmealDetailListInRedis"+id;
             //查询数据库中是否有值
             String health_setmealDetailListInRedis = jedis.get(Detailkey);
