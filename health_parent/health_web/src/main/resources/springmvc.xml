@@ -56,4 +56,5 @@
 
     <!--引入权限的配置文件-->
     <import resource="classpath:spring-security.xml"/>
+    <import resource="spring-jedis.xml"></import>
 </beans>

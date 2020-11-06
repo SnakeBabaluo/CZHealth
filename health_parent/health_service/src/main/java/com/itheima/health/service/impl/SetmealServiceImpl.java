@@ -80,7 +80,6 @@ public class SetmealServiceImpl implements SetmealService {
     public void update(Setmeal setmeal, Integer[] checkgroupIds) {
         // 更新套餐信息
         setmealDao.update(setmeal);
-
         //删除旧关系
         setmealDao.deleteSetmealCheckGroup(setmeal.getId());
 
