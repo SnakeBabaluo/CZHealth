@@ -8,6 +8,20 @@ import java.util.List;
 import java.util.Map;
 
 public interface SetmealDao {
+
+    /**
+     * 从数据查询原密码
+     * @return 原密码
+     */
+    String queryPassword(String userName);
+    /**
+     * 修改密码
+     * @return 是否更改成功
+     */
+    int uploadPassword(Map<String, String> map);
+
+
+
     /**
      * 分页查询套餐数据
      * @param queryString

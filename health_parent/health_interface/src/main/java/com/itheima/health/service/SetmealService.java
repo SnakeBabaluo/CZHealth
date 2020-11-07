@@ -16,6 +16,18 @@ public interface SetmealService {
      */
     PageResult<Setmeal> findPage(QueryPageBean queryPageBean);
 
+
+    /**
+     * 从数据查询原密码
+     * @return 原密码
+     */
+    String queryPassword(String userName);
+
+    /**
+     *修改密码
+     */
+    boolean uploadPassword(Map<String, String> map);
+
     /**
      * 通过id查询套餐信息
      * @param id

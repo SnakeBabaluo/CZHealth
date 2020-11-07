@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <!-- 页面meta -->
     <meta charset="utf-8">
@@ -7,6 +8,12 @@
     <title>传智健康</title>
     <meta name="description" content="传智健康">
     <meta name="keywords" content="传智健康">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <title>Document</title>
     <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
     <!-- 引入样式 -->
     <link rel="stylesheet" href="../plugins/elementui/index.css">
@@ -24,11 +31,41 @@
     </style>
 
 </head>
+
 <body class="hold-transition skin-purple sidebar-mini">
+<style>
+    #pop-up {
+        display: none;
+        z-index: 999;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        padding: 20px;
+        background-color: #666;
+    }
+
+    #pop-up>input {
+        width: 100%;
+        height: 25px;
+    }
+
+    #pop-up>#cancel {
+        margin-top: 10px;
+    }
+</style>
 <div id="app">
+    <div id="pop-up">
+        <input type="password" id="yuan" placeholder="原密码"><br /><br />
+        <input type="password" id="xin" placeholder="新密码"><br /><br />
+        <input type="password" id="que" placeholder="确认密码"><br /><br />
+        <input type="button" @click="submit" value="确认修改">
+        <input type="button" value="取消" id="cancel">
+    </div>
     <el-container>
         <el-header class="main-header" style="height:70px;">
-            <nav class="navbar navbar-static-top" :class=''>
+            <nav class="navbar navbar-static-top">
                 <!-- Logo -->
                 <a href="#" class="logo" style="text-align:center">
                     <span class="logo-lg"><img src="../img/logo.png"></span>
@@ -42,7 +79,7 @@
                         </div>
                         <el-dropdown-menu slot="dropdown">
                             <el-dropdown-item divided>
-                                <span style="display:block;">修改密码</span>
+                                <span style="display:block;" id="click">修改密码</span>
                             </el-dropdown-item>
                             <el-dropdown-item divided>
                                 <a href="/logout.do"><span style="display:block;">退出</span></a>
@@ -85,7 +122,8 @@
     new Vue({
         el: '#app',
         data: {
-            loginUsername:"",
+            loginUsername: "",
+            list: { 'yuan': 123, 'xin': null, 'que': null },
             menuList: [
                 {
                     "path": "1",
@@ -207,6 +245,24 @@
                 }
             ]
         },
+        methods: {
+            submit() {
+                let yuan_password = document.getElementById('yuan'),
+                    new_password = document.getElementById('xin'),
+                    que_password = document.getElementById('que');
+                this.list['yuan'] = yuan_password.value;
+                this.list['xin'] = new_password.value;
+                this.list['que'] = que_password.value;
+                axios.post('/setmeal/uploadPassword.do?userName='+this.loginUsername+'&password='+this.list.yuan+'&newPassword='+this.list.xin+'&queNewPassword='+this.list.que).then(res => {
+                    if (res.data.flag) {
+                        alert(res.data.message);
+                        window.location.href="/logout.do";
+                    } else {
+                        this.$message.error(res.data.message);
+                    }
+                })
+            }
+        },
         mounted() {
             // 获取登陆用户名
             axios.get('/user/getUsername.do').then(res => {
@@ -222,5 +278,16 @@
         var wd = 200;
         $(".el-main").css('width', $('body').width() - wd + 'px');
     });
+
+    let alter = document.getElementById('click'),
+        pop = document.getElementById('pop-up'),
+        cancel = document.getElementById('cancel');
+    alter.onclick = function () {
+        pop.style.display = "block";
+    };
+    cancel.onclick = function () {
+        pop.style.display = "none";
+    }
 </script>
+
 </html>

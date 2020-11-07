@@ -22,6 +22,27 @@ public class SetmealServiceImpl implements SetmealService {
     @Autowired
     private SetmealDao setmealDao;
 
+
+    /**
+     * 从数据查询原密码
+     * @return 原密码
+     */
+    @Override
+    public String queryPassword(String userName) {
+        return setmealDao.queryPassword(userName);
+    }
+
+    /**
+     * 修改密码
+     * @return 是否更改成功
+     */
+    @Override
+    @Transactional
+    public boolean uploadPassword(Map<String, String> map) {
+        return setmealDao.uploadPassword(map)>0;
+    }
+
+
     /**
      * 分页查询套餐数据
      *
