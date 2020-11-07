@@ -129,4 +129,15 @@
         select s.name, o.value
         from t_setmeal s,(select setmeal_id, count(1) value from t_order group by setmeal_id) o where s.id = o.setmeal_id
     </select>
+
+
+    <!--从数据查询原密码-->
+    <select id="queryPassword" resultType="String" parameterType="String">
+        select password from t_user where  username = #{value}
+    </select>
+
+    <!--修改密码-->
+    <update id="uploadPassword" parameterType="map">
+        update t_user set password=#{newPassword} where username = #{userName}
+    </update>
 </mapper>

@@ -1,6 +1,9 @@
 package com.itheima.health.dao;
 
 import com.itheima.health.pojo.Member;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Date;
 
 public interface MemberDao {
     /**
@@ -42,4 +45,13 @@ public interface MemberDao {
      * @return
      */
     int findMemberCountAfterDate(String monday);
+	
+	 /**
+     * 查询选定时间段内的会员数量
+     * @param beginDate
+     * @param endDatee
+     * @return
+     */
+    int findMemberCountByMonth(@Param("beginDate") Date beginDate, @Param("endDatee") Date endDatee);
+
 }

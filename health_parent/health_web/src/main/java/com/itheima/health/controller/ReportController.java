@@ -10,9 +10,7 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -37,42 +35,29 @@ public class ReportController {
     @Reference
     private ReportService reportService;
 
+
+
     /**
      * 获取过去一年内的会员数据
      * @return
      */
     @GetMapping("/getMemberReport")
     public Result getMemberReport(){
-        //创建一个集合用来组装过去12个月的数据
-        List<String> months = new ArrayList<String>();
-        //使用java中的calendar来操作日期
-        Calendar calendar = Calendar.getInstance();
-        //设置过去一年的时间
-        calendar.add(Calendar.MONTH, -12);
-        //创建日期格式化对象
-        SimpleDateFormat sdf  = new SimpleDateFormat("yyyy-MM");
-        //构建12个月的数据
-        for (int i = 0; i < 12; i++) {
-            //每次增加一个月
-            calendar.add(Calendar.MONTH, 1);
-            //获取时间, 过去的日期, 设置好的日期
-            Date date = calendar.getTime();
-            //月份数据集合存储, 将日期转换成前端需要的格式, 前端只展示年-月
-            months.add(sdf.format(date));
-        }
-        //调用服务查询过去12个月会员数据
-        List<Integer> memberCount = memberService.getMemberReport(months);
-
-        //创建map集合用来存储响应前端的数据
-        Map<String, Object> resultMap = new HashMap<String, Object>();
-        //存储月份数据
-        resultMap.put("months",months);
-        //存储会员数据
-        resultMap.put("memberCount", memberCount);
-
-        //返回响应
-        return new Result(true, MessageConstant.GET_MEMBER_NUMBER_REPORT_SUCCESS, resultMap);
+        return reportService.getMemberReport();
     }
+
+
+    /**
+     * 查询
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @PostMapping("/findMemberByDate")
+    public Result findMemberByDate(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
+       return reportService.findMemberByDate(startDate,endDate);
+    }
+
 
     /**
      * 获取套餐预约占比

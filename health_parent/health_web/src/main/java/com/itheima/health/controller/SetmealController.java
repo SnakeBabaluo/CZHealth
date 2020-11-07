@@ -29,6 +29,36 @@ public class SetmealController {
     private SetmealService setmealService;
     @Autowired
     JedisPool jedisPool;
+    /**
+     * 修改用户密码
+     */
+    @PostMapping("/uploadPassword")
+    public Result uploadPassword(String userName,String password,String newPassword,String queNewPassword){
+        //密码器
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        //从数据查询原密码
+        String formerPassword=setmealService.queryPassword(userName);
+        //默认原密码不对
+        boolean flag=false;
+
+        //两次新密码输入是否正确
+        if(!queNewPassword.equals(newPassword)){
+            return new Result(false,"两次密码输入不一致,请检查后输入");
+        }
+
+        if (encoder.matches(password,formerPassword)) {
+            //加密新密码
+            String s = encoder.encode(newPassword);
+            Map<String, String> map=new HashMap<>();
+            map.put("newPassword",s);
+            map.put("userName",userName);
+            //修改密码
+            flag=setmealService.uploadPassword(map);
+        }
+        return new Result(flag,flag?"密码修改成功,请重新登录":"原密码错误,请检查后重新输入");
+    }
+
+
     @PostMapping("/upload")
     public Result upload(MultipartFile imgFile){
         //获取图片的原始名字
