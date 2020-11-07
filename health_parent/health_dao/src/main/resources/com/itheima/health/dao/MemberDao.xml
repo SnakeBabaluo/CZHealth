@@ -95,5 +95,10 @@
     <select id="findMemberTotalCount" resultType="int">
         select count(id) from t_member
     </select>
+	
+	 <!--查询选定时间段内的会员数量-->
+	 <select id="findMemberCountByMonth"  resultType="java.lang.Integer">
+        select count(1) from t_member where regtime &gt;#{beginDate} and regtime &lt;#{endDatee}
+    </select>
 
 </mapper>
