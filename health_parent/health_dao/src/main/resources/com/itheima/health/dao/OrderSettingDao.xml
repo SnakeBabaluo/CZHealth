@@ -38,4 +38,15 @@
         select m.name member, s.name setmeal, DATE_FORMAT(o.orderDate, '%Y-%m-%d') orderDate, o.orderType
         from t_order o, t_member m, t_setmeal s where o.member_id = m.id and o.setmeal_id = s.id and o.id = #{id};
     </select>
+
+    <!--根据当前系统时间去查绚历史预约数据-->
+    <select id="findByToday" resultType="Integer" >
+        select id from t_ordersetting where orderDate &lt; #{date} and orderDate != #{date}
+    </select>
+
+
+    <!--删除历史预约数据-->
+    <delete id="delete">
+        delete from t_ordersetting where id = #{count}
+    </delete>
 </mapper>
