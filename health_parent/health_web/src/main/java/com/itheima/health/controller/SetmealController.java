@@ -1,6 +1,7 @@
 package com.itheima.health.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.fastjson.JSON;
 import com.itheima.health.constant.MessageConstant;
 import com.itheima.health.entity.PageResult;
 import com.itheima.health.entity.QueryPageBean;
@@ -8,10 +9,12 @@ import com.itheima.health.entity.Result;
 import com.itheima.health.pojo.Setmeal;
 import com.itheima.health.service.SetmealService;
 import com.itheima.health.utils.QiNiuUtils;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +27,8 @@ public class SetmealController {
 
     @Reference
     private SetmealService setmealService;
-
-
+    @Autowired
+    JedisPool jedisPool;
     /**
      * 修改用户密码
      */
@@ -99,10 +102,8 @@ public class SetmealController {
         //调用服务进行添加套餐
         setmealService.add(setmeal, checkgroupIds);
 
-        //返回响应
         return new Result(true, MessageConstant.ADD_SETMEAL_SUCCESS);
     }
-
     /**
      * 分页查询套餐数据
      * @param queryPageBean
@@ -163,7 +164,7 @@ public class SetmealController {
     public Result update(@RequestBody Setmeal setmeal, Integer[] checkgroupIds){
         //调用服务修改套餐
         setmealService.update(setmeal, checkgroupIds);
-        //返回响应
+
         return new Result(true, "修改套餐成功");
     }
 
@@ -176,6 +177,7 @@ public class SetmealController {
     public Result deleteById(int id){
         //调用服务删除套餐
         setmealService.deleteById(id);
+
         //返回响应
         return new Result(true, "删除套餐成功");
     }

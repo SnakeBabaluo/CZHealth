@@ -1,6 +1,7 @@
 package com.itheima.health.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.itheima.health.dao.SetmealDao;
@@ -9,9 +10,12 @@ import com.itheima.health.entity.QueryPageBean;
 import com.itheima.health.exception.HealthException;
 import com.itheima.health.pojo.Setmeal;
 import com.itheima.health.service.SetmealService;
+import com.itheima.health.utils.QiNiuUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +26,8 @@ public class SetmealServiceImpl implements SetmealService {
     @Autowired
     private SetmealDao setmealDao;
 
-
+    @Autowired
+    JedisPool jedisPool;
     /**
      * 从数据查询原密码
      * @return 原密码
@@ -101,7 +106,6 @@ public class SetmealServiceImpl implements SetmealService {
     public void update(Setmeal setmeal, Integer[] checkgroupIds) {
         // 更新套餐信息
         setmealDao.update(setmeal);
-
         //删除旧关系
         setmealDao.deleteSetmealCheckGroup(setmeal.getId());
 
@@ -113,6 +117,7 @@ public class SetmealServiceImpl implements SetmealService {
                 setmealDao.addSetmealCheckGroup(setmeal.getId(), checkgroupId);
             }
         }
+        updateRedis();
     }
 
     /**
@@ -131,9 +136,9 @@ public class SetmealServiceImpl implements SetmealService {
 
         //删除套餐与检查组的关系
         setmealDao.deleteSetmealCheckGroup(id);
-
         //删除套餐
         setmealDao.deleteById(id);
+        updateRedis();
     }
 
     /**
@@ -149,7 +154,6 @@ public class SetmealServiceImpl implements SetmealService {
         setmealDao.add(setmeal);
         //获取套餐的id
         Integer setmealId = setmeal.getId();
-
         //对checkgroupIds进行非空判断
         if (null != checkgroupIds) {
             //遍历检查组ids
@@ -158,8 +162,8 @@ public class SetmealServiceImpl implements SetmealService {
                 setmealDao.addSetmealCheckGroup(setmealId, checkgroupId);
             }
         }
+        updateRedis();
     }
-
     /**
      * 查询数据库中所有的图片
      *
@@ -177,9 +181,28 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Override
     public List<Setmeal> findAll() {
-        return setmealDao.findAll();
+        //创建jedis对象
+        Jedis jedis = jedisPool.getResource();
+        //如果jedis中查询到的是空值,说明里面没有存
+        String key = "health_setmealListInRedis";
+        String health_setmealListInRedis = jedis.get(key);
+        List<Setmeal> setmealList = null;
+        if (StringUtils.isEmpty(health_setmealListInRedis)) {
+            //调用服务查询所有套餐信息
+            setmealList = setmealDao.findAll();
+            // 拼接图片全路径
+            setmealList.forEach(s -> {
+                s.setImg(QiNiuUtils.DOMAIN + s.getImg());
+            });
+            //转成json字符串,存入Redis中
+            jedis.set(key, JSON.toJSONString(setmealList));
+        } else {
+            //不为空,将json字符串转换为对象
+            setmealList =  JSON.parseObject(health_setmealListInRedis, List.class);
+        }
+        jedis.close();
+        return setmealList;
     }
-
     /**
      * 查询套餐详情
      *
@@ -188,7 +211,24 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Override
     public Setmeal findDetailById(int id) {
-        return setmealDao.findDetailById(id);
+        //创建jedis对象
+        Jedis jedis = jedisPool.getResource();
+        //如果jedis中查询到的是空值,说明里面没有存
+        String Detailkey = "health_setmealDetailListInRedis"+id;
+        String health_setmealDetailListInRedis = jedis.get(Detailkey);
+        Setmeal setmeal =null;
+        if (StringUtils.isEmpty(health_setmealDetailListInRedis)){
+            //调用服务查询套餐详情
+            setmeal = setmealDao.findDetailById(id);
+            // 设置图片的完整路径
+            setmeal.setImg(QiNiuUtils.DOMAIN + setmeal.getImg());
+            //转换成json字符串,存入redis中
+            jedis.set(Detailkey,JSON.toJSONString(setmeal));
+        }else {
+            //如果不为空,则转换为pojo对象
+            setmeal = JSON.parseObject(health_setmealDetailListInRedis, Setmeal.class);
+        }
+        return setmeal;
     }
 
     /**
@@ -200,5 +240,49 @@ public class SetmealServiceImpl implements SetmealService {
     public List<Map<String, Object>> findSetmealCount() {
         //调用dao查询套餐预约的数据
         return setmealDao.findSetmealCount();
+    }
+
+    /**
+     * 数据库写入时,更新redis
+     */
+    public void updateRedis(){
+        //创建jedis对象
+        Jedis jedis = jedisPool.getResource();
+        String key = "health_setmealListInRedis";
+        Setmeal setmeal = null;
+        //调用服务查询所有套餐列表
+        List<Setmeal> setmealList = setmealDao.findAll();
+        //拼接图片路径
+        setmealList.forEach(s -> {
+            s.setImg(QiNiuUtils.DOMAIN + s.getImg());
+        });
+        //查询数据库中是否有值
+        String health_setmealListInRedis = jedis.get(key);
+        if (StringUtils.isEmpty(health_setmealListInRedis)){
+            //没有值,存入
+            jedis.set(key, JSON.toJSONString(setmealList));
+        }else {
+            //有值,更新
+            jedis.del(key);
+            jedis.set(key,JSON.toJSONString(setmealList));
+        }
+        for (Setmeal s : setmealList) {
+            Integer id = s.getId();
+            //调用服务查询套餐详情
+            setmeal =setmealDao.findDetailById(id);
+            //拼接图片路径
+            setmeal.setImg(QiNiuUtils.DOMAIN + setmeal.getImg());
+            String Detailkey = "health_setmealDetailListInRedis"+id;
+            //查询数据库中是否有值
+            String health_setmealDetailListInRedis = jedis.get(Detailkey);
+            if (StringUtils.isEmpty(health_setmealDetailListInRedis)){
+                //没有值,存入
+                jedis.set(Detailkey,JSON.toJSONString(setmeal));
+            }else {
+                //有值,更新
+                jedis.del(Detailkey);
+                jedis.set(Detailkey,JSON.toJSONString(setmeal));
+            }
+        }
     }
 }

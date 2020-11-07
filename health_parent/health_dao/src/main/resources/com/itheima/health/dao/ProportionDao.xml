@@ -4,13 +4,13 @@
 <mapper namespace="com.itheima.health.dao.ProportionDao">
     <!--查询所有会员性别信息-->
     <select id="findMenberCount" resultType="map">
-        select case sex when 1 then '男' else '女' end name , count(1) value from t_member group by sex
+        select case sex when 1 then '男'  when 2 then '女' else '未知' end name , count(1) value from t_member group by sex
     </select>
 
     <!--查询所有会员性别信息-->
     <select id="findMemberAgeCount" resultType="map">
         SELECT (CASE
-        WHEN a.age IS NULL THEN 'unknown'
+        WHEN a.age IS NULL THEN '未知'
         WHEN a.age &lt; 18 THEN '0-18岁'
         WHEN a.age BETWEEN 18 AND 30 THEN '18-30岁'
         WHEN a.age BETWEEN 31 AND 45 THEN '30-45岁'

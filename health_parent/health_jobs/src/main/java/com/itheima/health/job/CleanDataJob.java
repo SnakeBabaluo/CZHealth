@@ -47,7 +47,6 @@ public class CleanDataJob {
         if (countList != null) {
             countList.forEach(count -> orderService.delete(count));
         }
-
     }
 
 }
